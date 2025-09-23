@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Grocery.App.Views.GroceryListsView"
+             xmlns:vm="clr-namespace:Grocery.App.ViewModels"
+             xmlns:m="clr-namespace:Grocery.Core.Models;assembly=Grocery.Core"
+             Title="GroceryListsView">
+    <Shell.TitleView>
+        <Grid>
+            <Label Text="Boodschappenlijsten" FontSize="Large" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Grid>
+    </Shell.TitleView>
+
+    <Border Stroke="#C49B33"
+        StrokeThickness="4"
+        Padding="10"
+        Margin="10"
+        HorizontalOptions="Center">
+        <CollectionView x:Name="GroceryListView" ItemsSource="{Binding GroceryLists}" HorizontalOptions="Center"
+                        SelectionMode="Single"
+                        SelectionChangedCommand="{Binding SelectGroceryListCommand}"
+                        SelectionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=SelectedItem}">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="m:GroceryList">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Text="{Binding Name}"/>
+                        <Label Grid.Column="1" Text="{Binding Date}" HorizontalOptions="End" Margin="0,0,10,0"/>
+                        <Rectangle Grid.Column="2" BackgroundColor="{Binding Color}" WidthRequest="15" HeightRequest="15" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Border>
+</ContentPage>

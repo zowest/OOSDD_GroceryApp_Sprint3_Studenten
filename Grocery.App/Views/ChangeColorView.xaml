@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Grocery.App.ViewModels"
+             x:DataType="vm:ChangeColorViewModel"
+             x:Class="Grocery.App.Views.ChangeColorView"
+             Title="ChangeColorView">
+    <Shell.TitleView>
+        <Grid>
+            <Label Text="{Binding GroceryList.Name}" FontSize="Large" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Grid>
+    </Shell.TitleView>
+
+    <VerticalStackLayout>
+        <Editor Text="{Binding GroceryList.Color}" x:Name="newColor"/>
+        <Button Text="Wijzig kleur" Command="{Binding ChangeColorCommand}" CommandParameter="{Binding Source={x:Reference newColor}, Path=Text}" />
+    </VerticalStackLayout>
+</ContentPage>
