@@ -6,7 +6,7 @@ using Grocery.Core.Interfaces.Services;
 using Grocery.Core.Models;
 using System.Collections.ObjectModel;
 using System.Text.Json;
-using System.Linq; // minimaal toegevoegd
+using System.Linq;
 
 namespace Grocery.App.ViewModels
 {
@@ -43,7 +43,7 @@ namespace Grocery.App.ViewModels
                 MyGroceryListItems.Add(item);
 
             GetAvailableProducts();
-            Search(string.Empty); 
+            Search(string.Empty);
         }
 
         private void GetAvailableProducts()
@@ -51,11 +51,12 @@ namespace Grocery.App.ViewModels
             _allAvailableProducts.Clear();
             AvailableProducts.Clear();
 
-            foreach (Product p in _productService.GetAll())
-            {
+            foreach (var p in _productService.GetAll())
                 if (MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null && p.Stock > 0)
                     _allAvailableProducts.Add(p);
-            }
+
+            if (_allAvailableProducts.Count == 0)
+                MyMessage = "Alle producten zijn al toegevoegd."; // vervanger
         }
 
         partial void OnGroceryListChanged(GroceryList value)
@@ -116,6 +117,13 @@ namespace Grocery.App.ViewModels
 
             foreach (var p in src)
                 AvailableProducts.Add(p);
+
+            if (!src.Any())
+                MyMessage = string.IsNullOrWhiteSpace(searchTerm)
+                    ? "Geen producten beschikbaar."
+                    : $"Geen producten gevonden voor '{searchTerm}'.";
+            else
+                MyMessage = string.Empty;
         }
     }
 }
