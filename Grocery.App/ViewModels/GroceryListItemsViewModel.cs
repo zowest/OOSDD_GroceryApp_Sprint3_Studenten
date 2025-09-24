@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Grocery.App.Views;
 using Grocery.Core.Interfaces.Services;
 using Grocery.Core.Models;
+using Microsoft.Maui; // toegevoegd voor AppTheme
 using System.Collections.ObjectModel;
 using System.Text.Json;
 
@@ -23,13 +24,25 @@ namespace Grocery.App.ViewModels
         GroceryList groceryList = new(0, "None", DateOnly.MinValue, "", 0);
         [ObservableProperty]
         string myMessage;
+        [ObservableProperty]
+        private string themeToggleText = "Donker"; // toont doelmodus (actie)
 
         public GroceryListItemsViewModel(IGroceryListItemsService groceryListItemsService, IProductService productService, IFileSaverService fileSaverService)
         {
             _groceryListItemsService = groceryListItemsService;
             _productService = productService;
             _fileSaverService = fileSaverService;
+            InitThemeText();
             Load(groceryList.Id);
+        }
+
+        private void InitThemeText()
+        {
+            var effective = Application.Current.UserAppTheme == AppTheme.Unspecified
+                ? Application.Current.RequestedTheme
+                : Application.Current.UserAppTheme;
+
+            ThemeToggleText = effective == AppTheme.Dark ? "Licht" : "Donker";
         }
 
         private void Load(int id)
@@ -84,6 +97,21 @@ namespace Grocery.App.ViewModels
             {
                 await Toast.Make($"Opslaan mislukt: {ex.Message}").Show(cancellationToken);
             }
+        }
+
+        [RelayCommand]
+        private void ToggleTheme()
+        {
+            // Bepaal huidig effectief thema
+            var effective = Application.Current.UserAppTheme == AppTheme.Unspecified
+                ? Application.Current.RequestedTheme
+                : Application.Current.UserAppTheme;
+
+            var next = effective == AppTheme.Dark ? AppTheme.Light : AppTheme.Dark;
+            Application.Current.UserAppTheme = next;
+
+            // Label toont doel (actie) na klik
+            ThemeToggleText = next == AppTheme.Dark ? "Licht" : "Donker";
         }
 
     }

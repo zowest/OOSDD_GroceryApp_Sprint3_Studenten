@@ -10,6 +10,8 @@
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Wijzig kleur" Command="{Binding ChangeColorCommand}" IconImageSource="{FontImage Glyph='&#xf30c;', Color=Black, Size=22}" />
         <ToolbarItem Text="Deel boodschappenlijst" Command="{Binding ShareGroceryListCommand}" IconImageSource="{FontImage Glyph='&#xf30c;', Color=Black, Size=22}" />
+        <ToolbarItem Text="{Binding ThemeToggleText}"
+                     Command="{Binding ToggleThemeCommand}" />
     </ContentPage.ToolbarItems>
     
     <Shell.TitleView>
