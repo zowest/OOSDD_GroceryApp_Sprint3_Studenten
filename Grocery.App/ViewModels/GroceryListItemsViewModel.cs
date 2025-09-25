@@ -7,6 +7,7 @@ using Grocery.Core.Models;
 using Microsoft.Maui; // toegevoegd voor AppTheme
 using System.Collections.ObjectModel;
 using System.Text.Json;
+using System.Linq;
 
 namespace Grocery.App.ViewModels
 {
@@ -35,6 +36,7 @@ namespace Grocery.App.ViewModels
 
         [ObservableProperty]
         private string themeToggleText = "Donker"; // toont doelmodus (actie)
+        string myMessage = string.Empty;
 
         public GroceryListItemsViewModel(IGroceryListItemsService groceryListItemsService, IProductService productService, IFileSaverService fileSaverService)
         {
@@ -61,10 +63,12 @@ namespace Grocery.App.ViewModels
                 MyGroceryListItems.Add(item);
 
             GetAvailableProducts();
+            Search(string.Empty);
         }
 
         private void GetAvailableProducts()
         {
+            _allAvailableProducts.Clear();
             AvailableProducts.Clear();
             foreach (Product p in _productService.GetAll())
                 if (MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null && p.Stock > 0)
@@ -90,9 +94,13 @@ namespace Grocery.App.ViewModels
 
             GroceryListItem item = new(0, GroceryList.Id, product.Id, 1);
             _groceryListItemsService.Add(item);
+
             product.Stock--;
             _productService.Update(product);
+
+            _allAvailableProducts.Remove(product);
             AvailableProducts.Remove(product);
+
             OnGroceryListChanged(GroceryList);
         }
 
@@ -100,6 +108,7 @@ namespace Grocery.App.ViewModels
         public async Task ShareGroceryList(CancellationToken cancellationToken)
         {
             if (GroceryList == null || MyGroceryListItems == null) return;
+
             string jsonString = JsonSerializer.Serialize(MyGroceryListItems);
             try
             {
@@ -113,6 +122,7 @@ namespace Grocery.App.ViewModels
         }
 
         [RelayCommand]
+
         private void ToggleTheme()
         {
             var effective = Application.Current.UserAppTheme == AppTheme.Unspecified
@@ -124,5 +134,6 @@ namespace Grocery.App.ViewModels
 
             ThemeToggleText = next == AppTheme.Dark ? "Licht" : "Donker";
         }
+
     }
 }
