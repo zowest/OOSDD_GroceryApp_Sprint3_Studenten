@@ -7,6 +7,7 @@ using Grocery.Core.Models;
 using Microsoft.Maui; // toegevoegd voor AppTheme
 using System.Collections.ObjectModel;
 using System.Text.Json;
+using System.Linq;
 
 namespace Grocery.App.ViewModels
 {
@@ -16,16 +17,18 @@ namespace Grocery.App.ViewModels
         private readonly IGroceryListItemsService _groceryListItemsService;
         private readonly IProductService _productService;
         private readonly IFileSaverService _fileSaverService;
-        
+
+        private readonly List<Product> _allAvailableProducts = new();
+
         public ObservableCollection<GroceryListItem> MyGroceryListItems { get; set; } = [];
         public ObservableCollection<Product> AvailableProducts { get; set; } = [];
 
         [ObservableProperty]
         GroceryList groceryList = new(0, "None", DateOnly.MinValue, "", 0);
-        [ObservableProperty]
-        string myMessage;
+
         [ObservableProperty]
         private string themeToggleText = "Donker"; // toont doelmodus (actie)
+        string myMessage = string.Empty;
 
         public GroceryListItemsViewModel(IGroceryListItemsService groceryListItemsService, IProductService productService, IFileSaverService fileSaverService)
         {
@@ -48,16 +51,24 @@ namespace Grocery.App.ViewModels
         private void Load(int id)
         {
             MyGroceryListItems.Clear();
-            foreach (var item in _groceryListItemsService.GetAllOnGroceryListId(id)) MyGroceryListItems.Add(item);
+            foreach (var item in _groceryListItemsService.GetAllOnGroceryListId(id))
+                MyGroceryListItems.Add(item);
+
             GetAvailableProducts();
+            Search(string.Empty);
         }
 
         private void GetAvailableProducts()
         {
+            _allAvailableProducts.Clear();
             AvailableProducts.Clear();
-            foreach (Product p in _productService.GetAll())
-                if (MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null  && p.Stock > 0)
-                    AvailableProducts.Add(p);
+
+            foreach (var p in _productService.GetAll())
+                if (MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null && p.Stock > 0)
+                    _allAvailableProducts.Add(p);
+
+            if (_allAvailableProducts.Count == 0)
+                MyMessage = "Alle producten zijn al toegevoegd."; 
         }
 
         partial void OnGroceryListChanged(GroceryList value)
@@ -71,15 +82,21 @@ namespace Grocery.App.ViewModels
             Dictionary<string, object> paramater = new() { { nameof(GroceryList), GroceryList } };
             await Shell.Current.GoToAsync($"{nameof(ChangeColorView)}?Name={GroceryList.Name}", true, paramater);
         }
+
         [RelayCommand]
         public void AddProduct(Product product)
         {
             if (product == null) return;
+
             GroceryListItem item = new(0, GroceryList.Id, product.Id, 1);
             _groceryListItemsService.Add(item);
+
             product.Stock--;
             _productService.Update(product);
+
+            _allAvailableProducts.Remove(product);
             AvailableProducts.Remove(product);
+
             OnGroceryListChanged(GroceryList);
         }
 
@@ -87,6 +104,7 @@ namespace Grocery.App.ViewModels
         public async Task ShareGroceryList(CancellationToken cancellationToken)
         {
             if (GroceryList == null || MyGroceryListItems == null) return;
+
             string jsonString = JsonSerializer.Serialize(MyGroceryListItems);
             try
             {
@@ -100,6 +118,7 @@ namespace Grocery.App.ViewModels
         }
 
         [RelayCommand]
+
         private void ToggleTheme()
         {
             // Bepaal huidig effectief thema
@@ -112,6 +131,26 @@ namespace Grocery.App.ViewModels
 
             // Label toont doel (actie) na klik
             ThemeToggleText = next == AppTheme.Dark ? "Licht" : "Donker";
+        }
+
+        public void Search(string searchTerm)
+        {
+            searchTerm = (searchTerm ?? string.Empty).Trim();
+            AvailableProducts.Clear();
+
+            IEnumerable<Product> src = _allAvailableProducts;
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                src = src.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+            foreach (var p in src)
+                AvailableProducts.Add(p);
+
+            if (!src.Any())
+                MyMessage = string.IsNullOrWhiteSpace(searchTerm)
+                    ? "Geen producten beschikbaar."
+                    : $"Geen producten gevonden voor '{searchTerm}'.";
+            else
+                MyMessage = string.Empty;
         }
 
     }
