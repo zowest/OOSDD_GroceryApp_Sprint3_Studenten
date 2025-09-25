@@ -16,14 +16,23 @@ namespace Grocery.App.ViewModels
         private readonly IGroceryListItemsService _groceryListItemsService;
         private readonly IProductService _productService;
         private readonly IFileSaverService _fileSaverService;
-        
+
+        private readonly List<Product> _allAvailableProducts = new();
+
         public ObservableCollection<GroceryListItem> MyGroceryListItems { get; set; } = [];
         public ObservableCollection<Product> AvailableProducts { get; set; } = [];
 
         [ObservableProperty]
         GroceryList groceryList = new(0, "None", DateOnly.MinValue, "", 0);
-        [ObservableProperty]
-        string myMessage;
+
+        // Explicit property replaces the source-generated one
+        private string _myMessage = string.Empty;
+        public string MyMessage
+        {
+            get => _myMessage;
+            set => SetProperty(ref _myMessage, value);
+        }
+
         [ObservableProperty]
         private string themeToggleText = "Donker"; // toont doelmodus (actie)
 
@@ -48,7 +57,9 @@ namespace Grocery.App.ViewModels
         private void Load(int id)
         {
             MyGroceryListItems.Clear();
-            foreach (var item in _groceryListItemsService.GetAllOnGroceryListId(id)) MyGroceryListItems.Add(item);
+            foreach (var item in _groceryListItemsService.GetAllOnGroceryListId(id))
+                MyGroceryListItems.Add(item);
+
             GetAvailableProducts();
         }
 
@@ -56,7 +67,7 @@ namespace Grocery.App.ViewModels
         {
             AvailableProducts.Clear();
             foreach (Product p in _productService.GetAll())
-                if (MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null  && p.Stock > 0)
+                if (MyGroceryListItems.FirstOrDefault(g => g.ProductId == p.Id) == null && p.Stock > 0)
                     AvailableProducts.Add(p);
         }
 
@@ -71,10 +82,12 @@ namespace Grocery.App.ViewModels
             Dictionary<string, object> paramater = new() { { nameof(GroceryList), GroceryList } };
             await Shell.Current.GoToAsync($"{nameof(ChangeColorView)}?Name={GroceryList.Name}", true, paramater);
         }
+
         [RelayCommand]
         public void AddProduct(Product product)
         {
             if (product == null) return;
+
             GroceryListItem item = new(0, GroceryList.Id, product.Id, 1);
             _groceryListItemsService.Add(item);
             product.Stock--;
@@ -102,7 +115,6 @@ namespace Grocery.App.ViewModels
         [RelayCommand]
         private void ToggleTheme()
         {
-            // Bepaal huidig effectief thema
             var effective = Application.Current.UserAppTheme == AppTheme.Unspecified
                 ? Application.Current.RequestedTheme
                 : Application.Current.UserAppTheme;
@@ -110,9 +122,7 @@ namespace Grocery.App.ViewModels
             var next = effective == AppTheme.Dark ? AppTheme.Light : AppTheme.Dark;
             Application.Current.UserAppTheme = next;
 
-            // Label toont doel (actie) na klik
             ThemeToggleText = next == AppTheme.Dark ? "Licht" : "Donker";
         }
-
     }
 }
