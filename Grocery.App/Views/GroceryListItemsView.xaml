@@ -83,11 +83,6 @@
                     <CollectionView.EmptyView>
                         <ContentView>
                             <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="6">
-                                <!-- Laat originele vaste tekst staan -->
-                                <Label Text="Er zijn geen producten meer om toe te voegen"
-                                       FontAttributes="Bold"
-                                       HorizontalTextAlignment="Center"/>
-                                <!-- Extra dynamisch bericht alleen tonen als MyMessage niet leeg is -->
                                 <Label Text="{Binding MyMessage}"
                                        FontSize="12"
                                        TextColor="Gray"
@@ -106,7 +101,5 @@
                 </CollectionView>
             </StackLayout>
         </Border>
-
-        <Label Grid.Row="0" Grid.Column="0" HorizontalOptions="Center" x:Name="Message" Text="{Binding MyMessage}" TextColor="Red" Margin="30,0,0,10"/>
     </Grid>
 </ContentPage>

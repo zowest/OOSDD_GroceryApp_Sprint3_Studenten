@@ -26,7 +26,7 @@ namespace Grocery.App.ViewModels
         GroceryList groceryList = new(0, "None", DateOnly.MinValue, "", 0);
 
         [ObservableProperty]
-        string myMessage;
+        string myMessage = string.Empty;
 
         public GroceryListItemsViewModel(IGroceryListItemsService groceryListItemsService, IProductService productService, IFileSaverService fileSaverService)
         {
@@ -56,7 +56,7 @@ namespace Grocery.App.ViewModels
                     _allAvailableProducts.Add(p);
 
             if (_allAvailableProducts.Count == 0)
-                MyMessage = "Alle producten zijn al toegevoegd."; // vervanger
+                MyMessage = "Alle producten zijn al toegevoegd."; 
         }
 
         partial void OnGroceryListChanged(GroceryList value)
