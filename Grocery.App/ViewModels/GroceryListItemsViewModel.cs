@@ -8,6 +8,7 @@ using Microsoft.Maui; // toegevoegd voor AppTheme
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Linq;
+using System.Windows.Input;
 
 namespace Grocery.App.ViewModels
 {
@@ -26,17 +27,10 @@ namespace Grocery.App.ViewModels
         [ObservableProperty]
         GroceryList groceryList = new(0, "None", DateOnly.MinValue, "", 0);
 
-        // Explicit property replaces the source-generated one
-        private string _myMessage = string.Empty;
-        public string MyMessage
-        {
-            get => _myMessage;
-            set => SetProperty(ref _myMessage, value);
-        }
-
         [ObservableProperty]
         private string themeToggleText = "Donker"; // toont doelmodus (actie)
-        string myMessage = string.Empty;
+
+        public ICommand SearchCommand { get; }
 
         public GroceryListItemsViewModel(IGroceryListItemsService groceryListItemsService, IProductService productService, IFileSaverService fileSaverService)
         {
@@ -45,6 +39,8 @@ namespace Grocery.App.ViewModels
             _fileSaverService = fileSaverService;
             InitThemeText();
             Load(groceryList.Id);
+
+            SearchCommand = new Command<string>(OnSearch);
         }
 
         private void InitThemeText()
@@ -63,7 +59,7 @@ namespace Grocery.App.ViewModels
                 MyGroceryListItems.Add(item);
 
             GetAvailableProducts();
-            Search(string.Empty);
+            FilterAvailableProducts(string.Empty);
         }
 
         private void GetAvailableProducts()
@@ -122,7 +118,6 @@ namespace Grocery.App.ViewModels
         }
 
         [RelayCommand]
-
         private void ToggleTheme()
         {
             var effective = Application.Current.UserAppTheme == AppTheme.Unspecified
@@ -135,5 +130,36 @@ namespace Grocery.App.ViewModels
             ThemeToggleText = next == AppTheme.Dark ? "Licht" : "Donker";
         }
 
+        private void FilterAvailableProducts(string searchText)
+        {
+            AvailableProducts.Clear();
+            foreach (var product in _allAvailableProducts)
+            {
+                if (string.IsNullOrWhiteSpace(searchText) ||
+                    product.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                {
+                    AvailableProducts.Add(product);
+                }
+            }
+        }
+
+        private void OnSearch(string searchText)
+        {
+            FilterAvailableProducts(searchText);
+        }
+
+        public string MyMessage
+        {
+            get => _myMessage;
+            set
+            {
+                if (_myMessage != value)
+                {
+                    _myMessage = value;
+                    OnPropertyChanged(nameof(MyMessage));
+                }
+            }
+        }
+        private string _myMessage;
     }
 }
