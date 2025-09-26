@@ -5,11 +5,13 @@ on:
     branches:
       - main
       - develop
+      - release/v1.2.0
       - infra/runner-toevoegen
   pull_request:
     branches:
       - main
       - develop
+      - release/v1.2.0
  
 jobs:
   test:
@@ -24,7 +26,7 @@ jobs:
           dotnet-version: '8.0.x'  # Gebruik de juiste versie voor MAUI
  
       - name: Installeer MAUI workloads
-        run: dotnet workload install maui
+        run: dotnet workload install maui-android
  
       - name: Herstel afhankelijkheden
         run: dotnet restore
