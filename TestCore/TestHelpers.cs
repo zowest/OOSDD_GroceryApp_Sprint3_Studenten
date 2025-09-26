@@ -12,7 +12,6 @@ namespace TestCore
         {
         }
 
-
         //Happy flow
         [Test]
         public void TestPasswordHelperReturnsTrue()
@@ -28,7 +27,6 @@ namespace TestCore
         {
             Assert.IsTrue(PasswordHelper.VerifyPassword(password, passwordHash));
         }
-
 
         //Unhappy flow
         [Test]
@@ -46,10 +44,12 @@ namespace TestCore
             Assert.IsFalse(PasswordHelper.VerifyPassword(password, passwordHash));
         }
 
-        [Test]
-        public void TestProductSearchUnhappyPath()
+
+        [TestCase("xyz")]
+        [TestCase("zzz")]
+        [TestCase("peerx")]
+        public void TestProductSearchUnhappyPath(string searchTerm)
         {
-            // Arrange
             var products = new List<Product>
             {
                 new Product(1, "Appel", 5),
@@ -58,19 +58,18 @@ namespace TestCore
                 new Product(4, "Ananas", 1)
             };
 
-            string searchTerm = "xyz";
+            var filtered = products
+                .Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
-            // Act
-            var filtered = products.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            // Assert
             Assert.That(filtered.Count, Is.EqualTo(0));
         }
 
-        [Test]
-        public void TestProductSearchHappyPath()
+        [TestCase("an", new[] { "Banaan", "Ananas" })]
+        [TestCase("App", new[] { "Appel" })]
+        [TestCase("PE", new[] { "Appel", "Peer" })]
+        public void TestProductSearchHappyPath(string searchTerm, string[] expectedNames)
         {
-            // Arrange
             var products = new List<Product>
             {
                 new Product(1, "Appel", 5),
@@ -78,14 +77,13 @@ namespace TestCore
                 new Product(3, "Peer", 2),
                 new Product(4, "Ananas", 1)
             };
-            string searchTerm = "an";
 
-            // Act
-            var filtered = products.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+            var filtered = products
+                .Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
-            // Assert
-            Assert.That(filtered.Count, Is.EqualTo(2));
-            Assert.That(filtered.Select(p => p.Name), Is.EqualTo(new[] { "Banaan", "Ananas" }));
+            Assert.That(filtered.Count, Is.EqualTo(expectedNames.Length));
+            Assert.That(filtered.Select(p => p.Name), Is.EqualTo(expectedNames));
         }
     }
 }
